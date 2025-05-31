@@ -31,7 +31,7 @@ exports.loginUser = async (req, res) => {
     });
   } catch (error) {
     console.error('Erreur de connexion :', error);
-    res.status(500).json({ message: 'Connexion impossible', error });
+    res.status(500).json({ message: 'Connexion impossible', error: error.message });
   }
 };
 
@@ -53,6 +53,6 @@ exports.createUser = async(req, res) => {
 
     }catch(error){
         console.log('Erreur de création d"utilisateur');
-        res.status(500).json({message: 'Création impossible', error});
+        res.status(500).json({message: 'Création impossible', error: error.message});
     }
 };

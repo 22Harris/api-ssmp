@@ -1,30 +1,31 @@
-const sequelize = require('./configs/sequelize');
 require('dotenv').config();
+const express = require('express');
+const sequelize = require('./configs/sequelize');
 
 const medicationRoutes = require('./modules/medications/routes/medications.routes');
-app.use('api/medications', medicationRoutes);
-
 const userRoutes = require('./modules/users/routes/users.routes');
-app.use('api/users', userRoutes);
 
 const app = express();
 app.use(express.json());
 
-const PORT = process.env.PORT;
-(async() => {
-    try{
+// Routes
+app.use('/api/medications', medicationRoutes);
+app.use('/api/users', userRoutes);
 
-        await sequelize.authenticate();
-        console.log('Connexion à la base de données réussie');
+const PORT = process.env.PORT || 3000;
 
-        await sequelize.sync();
-        console.log('Modèles synchronisés');
+(async () => {
+  try {
+    await sequelize.authenticate();
+    console.log('Connexion à la base de données réussie');
 
-        app.listen(PORT, () => {
-            console.log(`Serveur lancé sur http://localhost:${PORT}`);
-        })
+    await sequelize.sync();
+    console.log('Modèles synchronisés');
 
-    }catch(error){
-        console.log(`Erreur de connexion à la base de données : ${PORT}`);
-    }
-})
+    app.listen(PORT, () => {
+      console.log(`Serveur lancé sur http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error('Erreur de connexion à la base de données :', error.message);
+  }
+})();
