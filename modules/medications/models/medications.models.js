@@ -3,7 +3,7 @@ const sequelize = require('../../../configs/sequelize');
 
 const Medication = sequelize.define('Medication', {
     ID: {
-        type: DataTypes.STRING,
+        type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
     },
@@ -25,11 +25,11 @@ const Medication = sequelize.define('Medication', {
     },
     quantity: {
         type: DataTypes.INTEGER,
-        default: null,
+        defaultValue: null,
     }
 }, {
-    tableName: 'Medication',
-    timestamps: false,
+    tableName: 'medications',
+    timestamps: true,
 });
 
 module.exports = Medication;
