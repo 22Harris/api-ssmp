@@ -8,6 +8,7 @@ const rateLimit = require('express-rate-limit');
 
 const medicationRoutes = require('./modules/medications/routes/medications.routes');
 const userRoutes = require('./modules/users/routes/users.routes');
+const historicsRoutes = require('./modules/historics/routes/historics.routes');//ity ihany koa
 
 
 const app = express();
@@ -32,6 +33,7 @@ app.use(express.json({ limit: '10kb' }));
 // Routes API
 app.use('/api/medications', medicationRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/historics', historicsRoutes);//ity koa
 
 // Route santé
 // app.get('/api/health', (req, res) => {
@@ -40,6 +42,7 @@ app.use('/api/users', userRoutes);
 //     timestamp: new Date().toISOString()
 //   });
 // });
+require('./modules/historics/models/historics.models');//ity no nampisako
 
 
 app.use((req, res) => {
@@ -62,6 +65,8 @@ const PORT = process.env.PORT || 5000;
   try {
     await sequelize.authenticate();
     console.log('✅ Connexion DB réussie');
+
+    require('./modules/associations/associations');//ity koa
 
     await sequelize.sync({
       alter: process.env.NODE_ENV === 'development',

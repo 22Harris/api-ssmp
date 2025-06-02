@@ -1,4 +1,6 @@
 const MedicationModel = require('../models/medications.models');
+const { createHistorics } = require('../../historics/controllers/historics.controllers');
+
 
 exports.createMedication = async (req, res) => {
   const { arrivalDate, name, description, type, quantity = 0 } = req.body;
@@ -27,6 +29,16 @@ exports.createMedication = async (req, res) => {
       description,
       type,
       quantity: Math.max(0, quantity) // Garantit une quantité positive
+    });
+
+    // Création de l'historique lié
+    await createHistorics({
+      dateDeliver: arrivalDate, // correspond à la date d'entrée
+      nameMedication: name,
+      typeMedication: type,
+      statusHistoric: 'entré', // statut de création
+      quantityMedication: quantity,
+      medicationId: newMedication.ID
     });
 
     return res.status(201).json({
@@ -73,6 +85,16 @@ exports.storeMedication = async (req, res) => {
 
     const newQuantity = (medication.quantity || 0) + parsedQuantity;
     await medication.update({ quantity: newQuantity });
+
+    //Historique  de store
+    await createHistorics({
+      dateDeliver: new Date(),
+      nameMedication: medication.name,
+      typeMedication: medication.type,
+      statusHistoric: 'approvisionnement',
+      quantityMedication: parsedQuantity,
+      medicationId: medication.ID
+    });
 
     return res.status(200).json({
       success: true,
@@ -122,6 +144,16 @@ exports.updateMedication = async (req, res) => {
     if (type) updates.type = type;
 
     await medication.update(updates);
+
+    //Historique de modification
+    await createHistorics({
+      dateDeliver: new Date(), // date de modification
+      nameMedication: updates.name || medication.name,
+      typeMedication: updates.type || medication.type,
+      statusHistoric: 'modification',
+      quantityMedication: medication.quantity,
+      medicationId: medication.ID
+    });
 
     return res.status(200).json({
       success: true,
@@ -174,4 +206,50 @@ exports.getAllMedications = async (req, res) => {
       message: 'Erreur serveur lors de la récupération des médicaments'
     })
   }
+}
+
+exports.deliverMedication = async (req,res) =>{
+  try {
+    const medicationId=req.params.id;
+    const {quantityToDeliver}=req.body //quantité entrée dans vente
+
+    if(!quantityToDeliver || quantityToDeliver <= 0){
+      return res.status(400).json({message:"Quantité invalide"});
+    }
+
+    const medication= await MedicationModel.findByPk(medicationId);
+    if(!medication){
+      return res.status(400).json({message:"Medicament non trouvé"});
+    }
+    if(medication.quantity===null || medication.quantity<quantityToDeliver){
+      return res.status(400).json({message:"Stock insuffisant"});
+    }
+
+    medication.quantity-=quantityToDeliver;
+    await medication.save();
+
+    // Création de l'historique après mise à jour du stock
+    await createHistorics({
+      dateDeliver: new Date(),
+      nameMedication: medication.name,
+      typeMedication: medication.type,
+      statusHistoric: 'vendu',
+      quantityMedication: quantityToDeliver,  // quantité vendue
+      medicationId: medication.ID
+    });
+
+    return res.status(200).json({
+      success:true,
+      message: "Medicament délivré avec succés",
+      data: medication
+    });
+
+  }catch(error){
+    console.error("Erreur lors de la livraison du médicament: ", error);
+    return res.status(500).json({
+      success:false,
+      message: "error server",
+    });
+  }
+
 }

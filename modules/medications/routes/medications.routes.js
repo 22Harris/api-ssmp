@@ -8,6 +8,7 @@ router.post('/create-medication', authMiddleware, medicationsController.createMe
 router.patch('/store-medication/:id', authMiddleware, medicationsController.storeMedication);
 router.patch('/update-medication/:id', authMiddleware, medicationsController.updateMedication);
 router.get('/get-medication/:id', authMiddleware, medicationsController.getMedication);
-router.get('get-all-medications', authMiddleware, medicationsController.getAllMedications);
-
+router.get('/get-all-medications', authMiddleware, medicationsController.getAllMedications);
+router.post('/deliver-medication/:id', authMiddleware, medicationsController.deliverMedication);
+  
 module.exports = router;
