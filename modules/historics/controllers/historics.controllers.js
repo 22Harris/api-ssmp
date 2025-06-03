@@ -61,3 +61,23 @@ exports.detailsHistorics= async (req,res)=>{
         return res.status(500).json({ success: false, message: 'Erreur serveur', error: error.message });
       }
 };
+
+exports.getByMedication = async (req, res) => {
+  const { medicationId } = req.params;
+  try {
+    const historics = await HistoricsModel.findAll({ where: { medicationId } });
+    
+    if (historics.length === 0) {
+      return res.status(404).json({ message: "Aucun historique trouvé pour ce médicament." });
+    }
+
+    return res.status(200).json({ success: true, data: historics });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur serveur',
+      error: error.message
+    });
+  }
+};
+

@@ -136,6 +136,13 @@ exports.updateMedication = async (req, res) => {
 
     await medication.update(updates);
 
+    await HistoricsModel.create({
+      medicationId: medication.ID,
+      dateDeliver: new Date(),
+      statusHistoric: 'modifié',  
+      quantityMedication: null,   
+    });
+
     return res.status(200).json({
       success: true,
       message: 'Médicament mis à jour avec succès.',
@@ -189,48 +196,45 @@ exports.getAllMedications = async (req, res) => {
   }
 }
 
-exports.deliverMedication = async (req,res) =>{
+exports.deliverMedication = async (req, res) => {
   try {
-    const medicationId=req.params.id;
-    const {quantityToDeliver}=req.body //quantité entrée dans vente
+    const medicationId = req.params.id;
+    const { quantityToDeliver } = req.body;
 
-    if(!quantityToDeliver || quantityToDeliver <= 0){
-      return res.status(400).json({message:"Quantité invalide"});
+    if (!quantityToDeliver || quantityToDeliver <= 0) {
+      return res.status(400).json({ message: "Quantité invalide" });
     }
 
-    const medication= await MedicationModel.findByPk(medicationId);
-    if(!medication){
-      return res.status(400).json({message:"Medicament non trouvé"});
-    }
-    if(medication.quantity===null || medication.quantity<quantityToDeliver){
-      return res.status(400).json({message:"Stock insuffisant"});
+    const medication = await MedicationModel.findByPk(medicationId);
+    if (!medication) {
+      return res.status(404).json({ message: "Médicament non trouvé" });
     }
 
-    medication.quantity-=quantityToDeliver;
+    if (medication.quantity === null || medication.quantity < quantityToDeliver) {
+      return res.status(400).json({ message: "Stock insuffisant" });
+    }
+
+    medication.quantity -= quantityToDeliver;
     await medication.save();
 
-    // Création de l'historique après mise à jour du stock
-    await createHistorics({
+    await HistoricsModel.create({
+      medicationId: medication.ID,
       dateDeliver: new Date(),
-      nameMedication: medication.name,
-      typeMedication: medication.type,
       statusHistoric: 'vendu',
-      quantityMedication: quantityToDeliver,  // quantité vendue
-      medicationId: medication.ID
+      quantityMedication: quantityToDeliver,
     });
 
     return res.status(200).json({
-      success:true,
-      message: "Medicament délivré avec succés",
+      success: true,
+      message: "Médicament délivré avec succès",
       data: medication
     });
 
-  }catch(error){
+  } catch (error) {
     console.error("Erreur lors de la livraison du médicament: ", error);
     return res.status(500).json({
-      success:false,
-      message: "error server",
+      success: false,
+      message: "Erreur serveur",
     });
   }
-
-}
+};
