@@ -7,16 +7,12 @@ const Historics = sequelize.define('Historics', {
     autoIncrement: true,
     primaryKey: true,
   },
+  medicationId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
   dateDeliver: {
     type: DataTypes.DATE,
-    allowNull: false,
-  },
-  nameMedication: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  typeMedication: {
-    type: DataTypes.STRING,
     allowNull: false,
   },
   statusHistoric: {
@@ -26,10 +22,6 @@ const Historics = sequelize.define('Historics', {
   quantityMedication: {
     type: DataTypes.INTEGER,
     allowNull: true,
-  },
-  medicationId: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
   },
 }, {
   tableName: 'historics',

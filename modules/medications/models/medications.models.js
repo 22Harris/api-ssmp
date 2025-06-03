@@ -7,25 +7,18 @@ const Medication = sequelize.define('Medication', {
         autoIncrement: true,
         primaryKey: true,
     },
-    arrivalDate: {
-        type: DataTypes.DATE,
-        allowNull: false,
-    },
     name: {
         type: DataTypes.STRING,
         unique: true,
-        allowNull: false,
     },
     description: {
         type: DataTypes.TEXT,
     },
     type: {
         type: DataTypes.STRING,
-        allowNull: false,
     },
     quantity: {
         type: DataTypes.INTEGER,
-        defaultValue: null,
     }
 }, {
     tableName: 'medications',

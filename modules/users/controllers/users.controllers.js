@@ -2,6 +2,7 @@ const UserModel = require('../models/users.models');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
+const { sequilize } = require('../../../configs/sequelize');
 
 
 const TOKEN_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
@@ -24,6 +25,7 @@ const generateAuthTokens = (userId) => {
 };
 
 exports.loginUser = async (req, res) => {
+
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -34,13 +36,8 @@ exports.loginUser = async (req, res) => {
   }
 
   try {
-    const user = await UserModel.findOne({
-      where: {
-        email: {
-          [Op.iLike]: email
-        }
-      }
-    });
+
+    const user = await UserModel.findOne({ where: { email }});
 
     if (!user) {
       return res.status(401).json({
@@ -89,6 +86,7 @@ exports.loginUser = async (req, res) => {
 };
 
 exports.createUser = async (req, res) => {
+
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -114,13 +112,7 @@ exports.createUser = async (req, res) => {
   }
 
   try {
-    const existingUser = await UserModel.findOne({
-      where: {
-        email: {
-          [Op.iLike]: email
-        }
-      }
-    });
+    const existingUser = await UserModel.findOne({ where: { email }});
 
     if (existingUser) {
       return res.status(409).json({

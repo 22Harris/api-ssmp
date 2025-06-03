@@ -1,36 +1,51 @@
 const HistoricsModel= require('../models/historics.models');
 
 exports.createHistorics = async (req, res) => {
-    const {
-      dateDeliver, 
-      nameMedication, 
-      typeMedication, 
-      statusHistoric, 
-      quantityMedication, 
-      medicationId
-    } = req.body;
-    try{
-        const historic= await HistoricsModel.create({
-            dateDeliver,
-            nameMedication,
-            typeMedication,
-            statusHistoric,
-            quantityMedication,
-            medicationId
-        });
-        res.status(201).json({ success: true, data: historic });
-    }catch(error){
-        console.error('erreur de la creation historic: ',error.message);
-        res.status(500).json({ success: false, message: 'Erreur serveur', error: error.message });
+    if (!req.body || typeof req.body !== 'object') {
+      return res.status(400).json({
+        success: false,
+        message: 'Données de requête invalides'
+      });
     }
-};
+  
+    const { medicationId, dateDeliver, statusHistoric, quantityMedication } = req.body;
+  
+    if (!medicationId || !dateDeliver || !statusHistoric || !quantityMedication) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tous les champs (medicationId, dateDeliver, statusHistoric, quantityMedication) sont requis'
+      });
+    }
+  
+    try {
+      const historic = await HistoricsModel.create({
+        medicationId,
+        dateDeliver: new Date(dateDeliver),
+        statusHistoric,
+        quantityMedication: Number(quantityMedication),
+      });
+  
+      return res.status(201).json({ 
+        success: true, 
+        data: historic 
+      });
+  
+    } catch (error) {
+      console.error('Erreur de la création historic:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Erreur serveur',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  };
 
 exports.getHistorics= async (req,res) =>{
     try{
         const getAllHistorics= await HistoricsModel.findAll();
-        res.status(200).json({success:true, data: getAllHistorics});
+        return res.status(200).json({success:true, data: getAllHistorics});
     }catch(error){
-        res.status(500).json({success:false, message: 'Erreur serveur',error:error.message});
+        return res.status(500).json({success:false, message: 'Erreur serveur',error:error.message});
     }
 };
 
@@ -41,8 +56,8 @@ exports.detailsHistorics= async (req,res)=>{
         if(!historic){
             return res.status(404).json({message:'Historique non trouvé'});
         }
-        res.status(200).json({success:true, data: historic});
+        return res.status(200).json({success:true, data: historic});
     }catch (error) {
-        res.status(500).json({ success: false, message: 'Erreur serveur', error: error.message });
+        return res.status(500).json({ success: false, message: 'Erreur serveur', error: error.message });
       }
 };

@@ -1,19 +1,17 @@
 const MedicationModel = require('../models/medications.models');
 const { createHistorics } = require('../../historics/controllers/historics.controllers');
-
+const HistoricsModel = require('../../historics/models/historics.models');
 
 exports.createMedication = async (req, res) => {
-  const { arrivalDate, name, description, type, quantity = 0 } = req.body;
+  const { name, description, type, quantity = 0 } = req.body;
 
-  // Validation des données
-  if (!arrivalDate || !name || !type) {
+  if (!name || !type) {
     return res.status(400).json({ 
-      message: 'Les champs arrivalDate, name et type sont obligatoires.' 
+      message: 'Les champs name et type sont obligatoires.' 
     });
   }
 
   try {
-    // Vérification de l'existence du médicament
     const existingMedication = await MedicationModel.findOne({ where: { name } });
     if (existingMedication) {
       return res.status(409).json({ 
@@ -22,24 +20,21 @@ exports.createMedication = async (req, res) => {
       });
     }
 
-    // Création du médicament
     const newMedication = await MedicationModel.create({
-      arrivalDate,
       name,
       description,
       type,
-      quantity: Math.max(0, quantity) // Garantit une quantité positive
+      quantity: Math.max(0, quantity),
     });
 
-    // Création de l'historique lié
-    await createHistorics({
-      dateDeliver: arrivalDate, // correspond à la date d'entrée
-      nameMedication: name,
-      typeMedication: type,
-      statusHistoric: 'entré', // statut de création
-      quantityMedication: quantity,
-      medicationId: newMedication.ID
-    });
+    if (quantity > 0) {
+      await HistoricsModel.create({
+        medicationId: newMedication.ID,
+        dateDeliver: new Date(),
+        statusHistoric: 'entré',
+        quantityMedication: quantity,
+      });
+    }
 
     return res.status(201).json({
       success: true,
@@ -86,14 +81,11 @@ exports.storeMedication = async (req, res) => {
     const newQuantity = (medication.quantity || 0) + parsedQuantity;
     await medication.update({ quantity: newQuantity });
 
-    //Historique  de store
-    await createHistorics({
+    await HistoricsModel.create({
+      medicationId: ID,
       dateDeliver: new Date(),
-      nameMedication: medication.name,
-      typeMedication: medication.type,
-      statusHistoric: 'approvisionnement',
-      quantityMedication: parsedQuantity,
-      medicationId: medication.ID
+      statusHistoric: 'entré',
+      quantityMedication: quantity,
     });
 
     return res.status(200).json({
@@ -117,7 +109,7 @@ exports.storeMedication = async (req, res) => {
 
 exports.updateMedication = async (req, res) => {
   const { ID } = req.params;
-  const { arrivalDate, name, description, type } = req.body;
+  const { name, description, type } = req.body;
 
   try {
     const medication = await MedicationModel.findByPk(ID);
@@ -138,22 +130,11 @@ exports.updateMedication = async (req, res) => {
     }
 
     const updates = {};
-    if (arrivalDate) updates.arrivalDate = arrivalDate;
     if (name) updates.name = name;
     if (description !== undefined) updates.description = description;
     if (type) updates.type = type;
 
     await medication.update(updates);
-
-    //Historique de modification
-    await createHistorics({
-      dateDeliver: new Date(), // date de modification
-      nameMedication: updates.name || medication.name,
-      typeMedication: updates.type || medication.type,
-      statusHistoric: 'modification',
-      quantityMedication: medication.quantity,
-      medicationId: medication.ID
-    });
 
     return res.status(200).json({
       success: true,
