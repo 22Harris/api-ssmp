@@ -73,9 +73,14 @@ exports.getHistorics = async (req, res) => {
 };
 
 exports.detailsHistorics= async (req,res)=>{
-  const {id}=req.params;
+  const { id }=req.params;
   try{
-      const historic= await HistoricsModel.findByPk(id);
+      const historic= await HistoricsModel.findByPk(id, {
+        include: {
+          model: MedicationModel,
+          as: 'medications'
+        }
+      });
 
       if(!historic){
         return res.status(404).json({message:'Historique non trouvé'});
@@ -91,7 +96,10 @@ exports.detailsHistorics= async (req,res)=>{
 exports.getByMedication = async (req, res) => {
   const { medicationId } = req.params;
   try {
-    const historics = await HistoricsModel.findAll({ where: { medicationId } });
+    const historics = await HistoricsModel.findAll({ where: { medicationId }, include: {
+      model: MedicationModel,
+      as: 'medications'
+    } });
     
     if (historics.length === 0) {
       return res.status(404).json({ message: "Aucun historique trouvé pour ce médicament." });

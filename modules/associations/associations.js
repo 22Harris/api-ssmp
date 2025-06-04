@@ -9,5 +9,5 @@ Medication.hasMany(Historics, {
 
 Historics.belongsTo(Medication, {
   foreignKey: 'medicationId',
-  as: 'medication',
+  as: 'medications',
 });

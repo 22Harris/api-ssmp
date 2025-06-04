@@ -6,7 +6,9 @@ const cors = require('cors');
 
 const medicationRoutes = require('./modules/medications/routes/medications.routes');
 const userRoutes = require('./modules/users/routes/users.routes');
-const historicsRoutes = require('./modules/historics/routes/historics.routes');//ity ihany koa
+const historicsRoutes = require('./modules/historics/routes/historics.routes');
+
+require('./modules/associations/associations');
 
 const app = express();
 
@@ -15,7 +17,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes API
 app.use('/api/medications', medicationRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/historics', historicsRoutes);
@@ -57,7 +58,6 @@ const PORT = process.env.PORT;
   }
 })();
 
-// Gestion propre des arrêts
 process.on('SIGTERM', () => {
   console.log('🛑 Fermeture propre du serveur');
   sequelize.close().then(() => process.exit(0));

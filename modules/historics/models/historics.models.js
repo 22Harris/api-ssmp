@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../../configs/sequelize');
+const MedicationModel = require('../../medications/models/medications.models');
 
 const Historics = sequelize.define('Historics', {
   ID: {
@@ -28,4 +29,6 @@ const Historics = sequelize.define('Historics', {
   timestamps: true,
 });
 
+
 module.exports = Historics;
+
