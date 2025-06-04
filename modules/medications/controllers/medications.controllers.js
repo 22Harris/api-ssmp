@@ -92,7 +92,7 @@ exports.storeMedication = async (req, res) => {
       success: true,
       message: 'Stock mis à jour avec succès.',
       data: {
-        previousQuantity: medication.quantity,
+        previousQuantity: medication.quantity - quantity,
         addedQuantity: parsedQuantity,
         newQuantity
       }
@@ -135,13 +135,6 @@ exports.updateMedication = async (req, res) => {
     if (type) updates.type = type;
 
     await medication.update(updates);
-
-    await HistoricsModel.create({
-      medicationId: medication.ID,
-      dateDeliver: new Date(),
-      statusHistoric: 'modifié',  
-      quantityMedication: null,   
-    });
 
     return res.status(200).json({
       success: true,

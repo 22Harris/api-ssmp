@@ -1,4 +1,5 @@
 const HistoricsModel= require('../models/historics.models');
+const MedicationModel = require('../../medications/models/medications.models');
 
 exports.createHistorics = async (req, res) => {
     if (!req.body || typeof req.body !== 'object') {
@@ -40,26 +41,51 @@ exports.createHistorics = async (req, res) => {
     }
   };
 
-exports.getHistorics= async (req,res) =>{
-    try{
-        const getAllHistorics= await HistoricsModel.findAll();
-        return res.status(200).json({success:true, data: getAllHistorics});
-    }catch(error){
-        return res.status(500).json({success:false, message: 'Erreur serveur',error:error.message});
-    }
+exports.getHistorics = async (req, res) => {
+  try {
+    const historics = await HistoricsModel.findAll();
+    
+    const historicsWithMedication = await Promise.all(
+      historics.map(async historic => {
+        const medication = await MedicationModel.findByPk(historic.medicationId, {
+          attributes: ['name', 'description', 'type']
+        });
+        
+        return {
+          ...historic.toJSON(),
+          medication: {
+            name: medication.name,
+            description: medication.description,
+            type: medication.type
+          }
+        };
+      })
+    );
+
+    return res.status(200).json({ success: true, data: historicsWithMedication });
+  } catch (error) {
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Erreur serveur',
+      error: error.message 
+    });
+  }
 };
 
 exports.detailsHistorics= async (req,res)=>{
-    const {id}=req.params;
-    try{
-        const historic= await HistoricsModel.findByPk(id);
-        if(!historic){
-            return res.status(404).json({message:'Historique non trouvé'});
-        }
-        return res.status(200).json({success:true, data: historic});
-    }catch (error) {
-        return res.status(500).json({ success: false, message: 'Erreur serveur', error: error.message });
+  const {id}=req.params;
+  try{
+      const historic= await HistoricsModel.findByPk(id);
+
+      if(!historic){
+        return res.status(404).json({message:'Historique non trouvé'});
       }
+
+      
+      return res.status(200).json({success:true, data: historic});
+  }catch (error) {
+      return res.status(500).json({ success: false, message: 'Erreur serveur', error: error.message });
+    }
 };
 
 exports.getByMedication = async (req, res) => {
