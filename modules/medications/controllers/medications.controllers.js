@@ -1,6 +1,7 @@
 const MedicationModel = require('../models/medications.models');
 const { createHistorics } = require('../../historics/controllers/historics.controllers');
 const HistoricsModel = require('../../historics/models/historics.models');
+const { Op } = require('sequelize');
 
 exports.createMedication = async (req, res) => {
   const { name, description, type, quantity = 0 } = req.body;
@@ -188,6 +189,65 @@ exports.getAllMedications = async (req, res) => {
     })
   }
 }
+
+exports.searchMedication = async (req, res) => {
+  const { term } = req.query;
+
+  try {
+    if (!term || term.trim() === '') {
+      const medications = await MedicationModel.findAll();
+      return res.status(200).json({
+        success: true,
+        data: medications
+      });
+    }
+
+    const medications = await MedicationModel.findAll({
+      where: {
+        [Op.or]: [
+          {
+            ID: {
+              [Op.like]: `%${term}%`
+            }
+          },{
+            name: {
+              [Op.like]: `%${term}%`
+            }
+          },
+          {
+            description: {
+              [Op.like]: `%${term}%`
+            }
+          },
+          {
+            type: {
+              [Op.like]: `%${term}%`
+            }
+          },
+          {
+            quantity: {
+              [Op.like]: `%${term}%`
+            }
+          }
+        ]
+      },
+      order: [['name', 'ASC']]
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: medications,
+      count: medications.length
+    });
+
+  } catch (error) {
+    console.error('Error searching the medication:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur de serveur lors de la recherche du médicament',
+    });
+  }
+};
 
 exports.deliverMedication = async (req, res) => {
   try {

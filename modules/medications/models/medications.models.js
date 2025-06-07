@@ -1,6 +1,5 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../../configs/sequelize');
-const HistoricModel = require('../../historics/models/historics.models');
 
 const Medication = sequelize.define('Medication', {
     ID: {

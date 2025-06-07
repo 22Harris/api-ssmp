@@ -10,6 +10,7 @@ router.patch('/update-medication/:ID', authMiddleware, medicationsController.upd
 
 router.get('/get-medication/:ID', authMiddleware, medicationsController.getMedication);
 router.get('/get-all-medications', authMiddleware, medicationsController.getAllMedications);
+router.get('/search-medication-by-term', authMiddleware, medicationsController.searchMedication);
 router.patch('/deliver-medication/:id', authMiddleware, medicationsController.deliverMedication);
   
 module.exports = router;
