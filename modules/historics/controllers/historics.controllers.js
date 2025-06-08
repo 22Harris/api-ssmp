@@ -1,5 +1,6 @@
 const HistoricsModel= require('../models/historics.models');
 const MedicationModel = require('../../medications/models/medications.models');
+const { Sequelize, Op } = require('sequelize');
 
 exports.createHistorics = async (req, res) => {
     if (!req.body || typeof req.body !== 'object') {
@@ -115,3 +116,79 @@ exports.getByMedication = async (req, res) => {
   }
 };
 
+exports.filterHistoric = async (req, res) => {
+  const { term } = req.query;
+
+  try {
+    if (!term || term.trim() === '') {
+      const historics = await HistoricsModel.findAll({
+        order: [['createdAt', 'DESC']],
+        include: [{
+          model: MedicationModel,
+          as: 'medications',
+          attributes: ['name', 'description', 'type'],
+          required: false
+        }]
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: historics,
+        count: historics.length
+      });
+    }
+
+    const searchTerm = `%${term}%`;
+    
+    const historics = await HistoricsModel.findAll({
+      where: {
+        [Op.or]: [
+          { ID: { [Op.like]: searchTerm } },
+          { medicationId: { [Op.like]: searchTerm } },
+          { statusHistoric: { [Op.like]: searchTerm } },
+          { quantityMedication: { [Op.like]: searchTerm } },
+          Sequelize.where(
+            Sequelize.fn('DATE_FORMAT', Sequelize.col('dateDeliver'), '%Y-%m-%d'),
+            { [Op.like]: searchTerm }
+          ),
+          Sequelize.where(
+            Sequelize.col('medications.name'), 
+            { [Op.like]: searchTerm }
+          ),
+          Sequelize.where(
+            Sequelize.col('medications.type'), 
+            { [Op.like]: searchTerm }
+          ),
+          Sequelize.where(
+            Sequelize.col('medications.description'), 
+            { [Op.like]: searchTerm }
+          )
+        ]
+      },
+      include: [{
+        model: MedicationModel,
+        as: 'medications',
+        attributes: ['name', 'description', 'type'],
+        required: false
+      }],
+      order: [['dateDeliver', 'DESC']]
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: historics,
+      count: historics.length
+    });
+
+  } catch (error) {
+    console.error('Error searching historics:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur de serveur lors de la récupération des historiques',
+      error: process.env.NODE_ENV === 'development' ? {
+        message: error.message,
+        stack: error.stack
+      } : undefined
+    });
+  }
+};

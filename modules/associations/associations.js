@@ -4,7 +4,7 @@ const Historics = require('../historics/models/historics.models');
 
 Medication.hasMany(Historics, {
   foreignKey: 'medicationId',
-  as: 'historics',
+  as: 'medications',
 });
 
 Historics.belongsTo(Medication, {
